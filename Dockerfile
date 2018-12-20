@@ -4,7 +4,7 @@ ENV CGO_ENABLED=0
 ENV GOOS=linux
 ENV GOARCH=amd64
 
-RUN go get github.com/fatedier/frp
+RUN go get github.com/skiloop/echo-server
 
 FROM scratch
 
