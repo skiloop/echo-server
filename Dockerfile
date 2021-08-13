@@ -1,17 +1,7 @@
-FROM golang:1.10 AS base
-
-ENV CGO_ENABLED=0
-ENV GOOS=linux
-ENV GOARCH=amd64
-
-RUN go get github.com/skiloop/echo-server
-
 FROM scratch
 
-COPY --from=base /go/bin/echo-server /echo-server
+ADD echo-server /
+ADD GeoLite2 /opt/geolite2
+ENV GEO_LITE_2_PATH=/opt/geolite2/
 
-WORKDIR /
-
-EXPOSE 8000
-
-ENTRYPOINT ["/echo-server"]
+CMD ["./echo-server"]
