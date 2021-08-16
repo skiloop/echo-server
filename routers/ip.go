@@ -70,6 +70,18 @@ type ipResponse struct {
 	YourIP    string  `json:"your_ip"`
 }
 
+func getWithDefaultLang(names map[string]string, lang, defaultLang string) string {
+	if names == nil {
+		return ""
+	}
+	if _, has := names[lang]; has {
+		return names[lang]
+	} else if _, has = names[defaultLang]; has {
+		return names[defaultLang]
+	}
+	return ""
+}
+
 func LookUp(ip string) (*Record, error) {
 	dbPath := geoLite2Path + "/" + "GeoLite2-City.mmdb"
 	networks := make([]string, 1)
@@ -102,19 +114,10 @@ func LookUp(ip string) (*Record, error) {
 }
 
 func formResponse(lang, yourIP, ip string, record *Record) *ipResponse {
-	if _, has := record.Record.Country.Names[lang]; !has {
-		lang = "en"
-	}
 	var r ipResponse
-	if _, has := record.Record.Country.Names[lang]; has {
-		r.Country = record.Record.Country.Names[lang]
-	}
-
-	if record.Record.City.Names != nil {
-		if _, has := record.Record.Country.Names[lang]; has {
-			r.City = record.Record.City.Names[lang]
-		}
-	}
+	en := "en"
+	r.Country = getWithDefaultLang(record.Record.Country.Names, lang, en)
+	r.City = getWithDefaultLang(record.Record.City.Names, lang, en)
 	r.Latitude = record.Record.Location.Latitude
 	r.Longitude = record.Record.Location.Longitude
 	r.Network = record.Network
@@ -122,6 +125,7 @@ func formResponse(lang, yourIP, ip string, record *Record) *ipResponse {
 	r.IP = ip
 	return &r
 }
+
 func GetIp(c echo.Context) (err error) {
 	realIP := c.RealIP()
 	c.Logger().Debugf("real ip: %s", realIP)
