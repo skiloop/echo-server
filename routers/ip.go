@@ -3,7 +3,6 @@ package routers
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 	"github.com/maxmind/mmdbinspect/pkg/mmdbinspect"
@@ -126,6 +125,13 @@ func formResponse(lang, yourIP, ip string, record *Record) *ipResponse {
 	r.IP = ip
 	return &r
 }
+func noQueryResponse(message, realIp string) map[string]interface{} {
+	m := make(map[string]interface{})
+	m["code"] = 1
+	m["message"] = message
+	m["your_id"] = realIp
+	return m
+}
 
 func GetIp(c echo.Context) (err error) {
 	realIP := c.RealIP()
@@ -141,17 +147,17 @@ func GetIp(c echo.Context) (err error) {
 		src = realIP
 	}
 	if src == "" {
-		_ = c.JSON(http.StatusOK, "{\"code\":1,\"message\":\"ip failed\"}")
+		_ = c.JSON(http.StatusOK, noQueryResponse("ip error", realIP))
 		return
 	}
 	if !EnableGeoIP {
-		_ = c.JSON(http.StatusOK, fmt.Sprintf("{\"code\":0,\"your_ip\":\"%s\"}", realIP))
+		_ = c.JSON(http.StatusOK, noQueryResponse("geoip disabled", realIP))
 		return
 	}
 
 	record, err := LookUp(src)
 	if err != nil {
-		_ = c.JSON(http.StatusOK, fmt.Sprintf("{\"code\":0,\"message\":\"no data\",\"your_ip\":\"%s\"}", realIP))
+		_ = c.JSON(http.StatusOK, noQueryResponse("no data", realIP))
 		return
 	}
 	// lang
