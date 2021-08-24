@@ -79,10 +79,10 @@ func setUpRouters(e *echo.Echo) {
 	e.PUT("/json", routers.EchoAsJson)
 
 	// ip location routes
-	if routers.EnableGeoIP {
-		e.GET("/ip", routers.YourIp)
-		e.GET("/loc", routers.GetIp)
-	}
+	e.GET("/ip", routers.GetIp)
+	e.GET("/loc", routers.GetIp)
+	e.GET("/ip/:ip", routers.GetIp)
+	e.GET("/loc/:ip", routers.GetIp)
 
 	e.GET("/mongo/:id", routers.MongoParseID)
 
