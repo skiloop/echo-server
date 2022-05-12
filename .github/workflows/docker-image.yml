@@ -30,7 +30,7 @@ jobs:
     - name: Build the Docker image
       run: |
         pwd
-        ls
+        ./echo-server --help
         docker build . --file Dockerfile --tag image
 
     - name: Log into registry
