@@ -22,14 +22,11 @@ jobs:
         go-version: 1.18
 
     - name: Build
-      run: |
-        go build -v ./
-        ls
-        pwd
+      run: env GO111MODULE=on GOOS=linux GOARCH=arm64 go build -v ./
+
      
     - name: Build the Docker image
       run: |
-        pwd
         ./echo-server --help
         docker build . --file Dockerfile --tag image
 
