@@ -22,15 +22,18 @@ jobs:
         go-version: 1.18
 
     - name: Build
-      run: env GO111MODULE=on GOOS=linux GOARCH=amd64 go build -v ./
+      run: env GO111MODULE=on GOOS=linux GOARCH=amd64 go build  -ldflags="-s -w" -v ./
 
-    - uses: mr-smithers-excellent/docker-build-push@v5
-      name: Build & push Docker image
+    - name: Login to DockerHub
+      uses: docker/login-action@v2
       with:
-        image: skiloop/echo-server
-        tags: latest
-        registry: docker.io
-        dockerfile: Dockerfile
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+    - name: Build and push
+      uses: docker/build-push-action@v3
+      with:
+        platforms: linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
+        push: true
+        tags: skiloop/echo-server:latest
 
