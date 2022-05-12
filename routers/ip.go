@@ -129,7 +129,7 @@ func noQueryResponse(message, realIp string) map[string]interface{} {
 	m := make(map[string]interface{})
 	m["code"] = 1
 	m["message"] = message
-	m["your_id"] = realIp
+	m["your_ip"] = realIp
 	return m
 }
 
