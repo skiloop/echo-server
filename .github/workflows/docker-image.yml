@@ -16,14 +16,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Set up Go
-      uses: actions/setup-go@v3
-      with:
-        go-version: 1.18
-
-    - name: Build
-      run: env GO111MODULE=on GOOS=linux GOARCH=amd64 go build  -ldflags="-s -w" -v ./
-
     - name: Login to DockerHub
       uses: docker/login-action@v2
       with:
