@@ -5,7 +5,7 @@ WORKDIR /app
 ARG TARGETOS
 ARG TARGETARCH
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
-    go build -ldflags="-s -w" . -o echo-server
+    go build -ldflags="-s -w" .
 
 # Create image
 FROM scratch
