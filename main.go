@@ -77,6 +77,14 @@ func setUpRouters(e *echo.Echo) {
 	e.POST("/json/*", routers.EchoAsJson)
 	e.PATCH("/json/*", routers.EchoAsJson)
 	e.PUT("/json/*", routers.EchoAsJson)
+	e.GET("/echo", routers.Echo)
+	e.POST("/echo", routers.Echo)
+	e.PATCH("/echo", routers.Echo)
+	e.PUT("/echo", routers.Echo)
+	e.GET("/json", routers.EchoAsJson)
+	e.POST("/json", routers.EchoAsJson)
+	e.PATCH("/json", routers.EchoAsJson)
+	e.PUT("/json", routers.EchoAsJson)
 
 	// ip location routes
 	e.GET("/ip", routers.GetIp)
