@@ -69,14 +69,14 @@ func serve(e *echo.Echo, addr, httpsAddr, cert, key string) {
 
 func setUpRouters(e *echo.Echo) {
 	// echo routes
-	e.GET("/echo", routers.Echo)
-	e.POST("/echo", routers.Echo)
-	e.PATCH("/echo", routers.Echo)
-	e.PUT("/echo", routers.Echo)
-	e.GET("/json", routers.EchoAsJson)
-	e.POST("/json", routers.EchoAsJson)
-	e.PATCH("/json", routers.EchoAsJson)
-	e.PUT("/json", routers.EchoAsJson)
+	e.GET("/echo/*", routers.Echo)
+	e.POST("/echo/*", routers.Echo)
+	e.PATCH("/echo/*", routers.Echo)
+	e.PUT("/echo/*", routers.Echo)
+	e.GET("/json/*", routers.EchoAsJson)
+	e.POST("/json/*", routers.EchoAsJson)
+	e.PATCH("/json/*", routers.EchoAsJson)
+	e.PUT("/json/*", routers.EchoAsJson)
 
 	// ip location routes
 	e.GET("/ip", routers.GetIp)
