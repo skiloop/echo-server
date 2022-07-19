@@ -52,6 +52,10 @@ func serve(e *echo.Echo, addr, httpsAddr, cert, key string) {
 		if tlsAddr == "" {
 			tlsAddr = os.Getenv("BIND_ADDR_TLS")
 		}
+		if tlsAddr == "" {
+			tlsAddr = "127.0.0.1:9013"
+		}
+
 	}
 	if tlsAddr == "" && addr == "" {
 		e.Logger.Fatal("no server addr set")
@@ -101,4 +105,7 @@ func setUpRouters(e *echo.Echo) {
 	e.POST("/ok", OK)
 	e.GET("/health", OK)
 	e.GET("/_health", OK)
+
+	// websocket
+	e.GET("/ws/echo", routers.WsEcho)
 }
