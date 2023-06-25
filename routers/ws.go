@@ -4,10 +4,15 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
+	"net/http"
 )
 
-var upgrader = websocket.Upgrader{} // use default options
+var upgrader = websocket.Upgrader{CheckOrigin: checkOrigin} // use default options
 const wsMessageLimit = 100
+
+func checkOrigin(r *http.Request) bool{
+	return true
+}
 
 // WsEcho
 // websocket echo
@@ -34,7 +39,7 @@ func WsEcho(c echo.Context) error {
 			c.Logger().Error("read:", err)
 			break
 		}
-		c.Logger().Debugf("recv: type %d, size %d", mt, len(message))
+		c.Logger().Debugf("recv: type %d, size %d, message: %s", mt, len(message), message)
 		if len(message) > wsMessageLimit {
 			message = message[:wsMessageLimit]
 		}
