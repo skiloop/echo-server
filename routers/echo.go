@@ -23,6 +23,7 @@ func readBody(c echo.Context) *buffer.Buffer {
 	}
 	return buf
 }
+
 func Echo(c echo.Context) error {
 	buf := readBody(c)
 	c.Logger().Debugf("body size: %d", len(buf.String()))
@@ -46,4 +47,24 @@ func EchoAsJson(c echo.Context) error {
 	resp["url"] = c.Request().URL.RequestURI()
 	resp["body"] = readBody(c).String()
 	return c.JSON(http.StatusOK, resp)
+}
+
+func SetEchoRouters(e *echo.Echo, path string) {
+	// echo routes
+	e.GET("/echo/*", Echo)
+	e.POST("/echo/*", Echo)
+	e.PATCH("/echo/*", Echo)
+	e.PUT("/echo/*", Echo)
+	e.GET("/json/*", EchoAsJson)
+	e.POST("/json/*", EchoAsJson)
+	e.PATCH("/json/*", EchoAsJson)
+	e.PUT("/json/*", EchoAsJson)
+	e.GET("/echo", Echo)
+	e.POST("/echo", Echo)
+	e.PATCH("/echo", Echo)
+	e.PUT("/echo", Echo)
+	e.GET("/json", EchoAsJson)
+	e.POST("/json", EchoAsJson)
+	e.PATCH("/json", EchoAsJson)
+	e.PUT("/json", EchoAsJson)
 }

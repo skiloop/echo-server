@@ -10,7 +10,7 @@ import (
 var upgrader = websocket.Upgrader{CheckOrigin: checkOrigin} // use default options
 const wsMessageLimit = 100
 
-func checkOrigin(r *http.Request) bool{
+func checkOrigin(r *http.Request) bool {
 	return true
 }
 
@@ -19,24 +19,24 @@ func checkOrigin(r *http.Request) bool{
 func WsEcho(c echo.Context) error {
 	conn, err := upgrader.Upgrade(c.Response(), c.Request(), nil)
 	if err != nil {
-		c.Logger().Warn("upgrade error:", err)
+		c.Logger().Warn("upgrade error: ", err)
 		return err
 	}
 	defer func(con *websocket.Conn) {
 		err := con.Close()
 		if err != nil {
-			c.Logger().Error("websocket close error:", err)
+			c.Logger().Error("websocket close error: ", err)
 		}
 	}(conn)
 	err = writeCommonMessage(conn)
 	if err != nil {
-		c.Logger().Error("common message write error:", err)
+		c.Logger().Error("common message write error: ", err)
 		return err
 	}
 	for {
 		mt, message, err := conn.ReadMessage()
 		if err != nil {
-			c.Logger().Error("read:", err)
+			c.Logger().Error("read: ", err)
 			break
 		}
 		c.Logger().Debugf("recv: type %d, size %d, message: %s", mt, len(message), message)

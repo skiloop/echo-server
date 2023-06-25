@@ -180,3 +180,10 @@ func GetIp(c echo.Context) (err error) {
 func YourIp(c echo.Context) error {
 	return c.String(http.StatusOK, c.RealIP())
 }
+
+func SetLocationRouters(e *echo.Echo, path string) {
+	e.GET("/ip", GetIp)
+	e.GET("/loc", GetIp)
+	e.GET("/ip/:ip", GetIp)
+	e.GET("/loc/:ip", GetIp)
+}
