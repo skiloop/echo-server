@@ -5,3 +5,4 @@ Geo*
 *.crt
 *.info
 *.key
+*.csr

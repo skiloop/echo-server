@@ -20,7 +20,7 @@ func init() {
 	store = make(echo.Map)
 }
 
-// New creates an instance of Echo.
+// NewEchoServer New creates an instance of Echo.
 func NewEchoServer(addr, cert, key string) (e *echo.Echo) {
 	e = echo.New()
 	s, err := newJA3HttpServer(addr, cert, key)
@@ -45,6 +45,7 @@ func setJa3() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(context echo.Context) error {
 			k := context.Request().RemoteAddr
+			// TODO: conflicts appear when different client from the same remote address
 			if val, ok := store[k]; ok {
 				delete(store, k)
 				context.Set("ja3", val)
@@ -109,6 +110,7 @@ func filepathOrContent(fileOrContent interface{}) (content []byte, err error) {
 	}
 }
 
+// JA3 the middleware to record ja3 fingerprint to header
 func JA3() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(context echo.Context) error {

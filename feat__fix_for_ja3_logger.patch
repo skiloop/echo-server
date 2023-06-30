@@ -1,0 +1,97 @@
+Subject: [PATCH] feat: fix for ja3 logger
+---
+Index: common.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/common.go b/common.go
+--- a/common.go	(revision ce27bf1ce457aab20b9baa9c51f5246be057c44a)
++++ b/common.go	(date 1688143139908)
+@@ -399,6 +399,9 @@
+ // ClientHelloInfo contains information from a ClientHello message in order to
+ // guide application logic in the GetCertificate and GetConfigForClient callbacks.
+ type ClientHelloInfo struct {
++	// Version client version
++	Version uint16
++
+ 	// CipherSuites lists the CipherSuites supported by the client (e.g.
+ 	// TLS_AES_128_GCM_SHA256, TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256).
+ 	CipherSuites []uint16
+@@ -442,6 +445,10 @@
+ 	// connection to fail.
+ 	Conn net.Conn
+ 
++	// Extensions client extensions  including unsupported ones
++	// in origin order from client
++	Extensions []uint16
++
+ 	// config is embedded by the GetCertificate or GetConfigForClient caller,
+ 	// for use with SupportsCertificate.
+ 	config *Config
+Index: handshake_messages.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/handshake_messages.go b/handshake_messages.go
+--- a/handshake_messages.go	(revision ce27bf1ce457aab20b9baa9c51f5246be057c44a)
++++ b/handshake_messages.go	(date 1688140371873)
+@@ -93,6 +93,7 @@
+ 	pskModes                         []uint8
+ 	pskIdentities                    []pskIdentity
+ 	pskBinders                       [][]byte
++	clientExts                       []uint16
+ }
+ 
+ func (m *clientHelloMsg) marshal() ([]byte, error) {
+@@ -394,6 +395,7 @@
+ 	}
+ 
+ 	seenExts := make(map[uint16]bool)
++	clientExts := make([]uint16, 0)
+ 	for !extensions.Empty() {
+ 		var extension uint16
+ 		var extData cryptobyte.String
+@@ -406,7 +408,7 @@
+ 			return false
+ 		}
+ 		seenExts[extension] = true
+-
++		clientExts = append(clientExts, extension)
+ 		switch extension {
+ 		case extensionServerName:
+ 			// RFC 6066, Section 3
+@@ -599,7 +601,7 @@
+ 			return false
+ 		}
+ 	}
+-
++	m.clientExts = clientExts
+ 	return true
+ }
+ 
+Index: handshake_server.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/handshake_server.go b/handshake_server.go
+--- a/handshake_server.go	(revision ce27bf1ce457aab20b9baa9c51f5246be057c44a)
++++ b/handshake_server.go	(date 1688143135938)
+@@ -876,6 +876,7 @@
+ 	}
+ 
+ 	return &ClientHelloInfo{
++		Version:           clientHello.vers,
+ 		CipherSuites:      clientHello.cipherSuites,
+ 		ServerName:        clientHello.serverName,
+ 		SupportedCurves:   clientHello.supportedCurves,
+@@ -884,6 +885,7 @@
+ 		SupportedProtos:   clientHello.alpnProtocols,
+ 		SupportedVersions: supportedVersions,
+ 		Conn:              c.conn,
++		Extensions:        clientHello.clientExts,
+ 		config:            c.config,
+ 		ctx:               ctx,
+ 	}

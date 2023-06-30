@@ -3,14 +3,13 @@ package server
 import (
 	"crypto/tls"
 	"fmt"
-	"github.com/skiloop/echo-server/server/ctls"
 	"github.com/skiloop/echo-server/utils"
 	"strings"
 )
 
 type Ja3 struct {
 	Hash       string   `json:"ja3"`
-	MaxVersion uint16   `json:"max_version"`
+	Version    uint16   `json:"version"`
 	Ciphers    []uint16 `json:"ciphers"`
 	Extensions []uint16 `json:"extensions"`
 	Curves     []uint16 `json:"curves"`
@@ -20,7 +19,7 @@ type Ja3 struct {
 func (j *Ja3) Md5Hash() string {
 	if j.Hash == "" {
 		var ja3 []string
-		ja3 = append(ja3, fmt.Sprintf("%d", j.MaxVersion))
+		ja3 = append(ja3, fmt.Sprintf("%d", j.Version))
 		ja3 = append(ja3, getList(j.Ciphers))
 		ja3 = append(ja3, getList(j.Extensions))
 		ja3 = append(ja3, getList(j.Curves))
@@ -42,9 +41,9 @@ func GenJA3(info tls.ClientHelloInfo) (string, error) {
 
 func GenJA3Raw(info tls.ClientHelloInfo) (Ja3, error) {
 	var ja3 Ja3
-	ja3.MaxVersion = getMaxVersion(info)
+	ja3.Version = info.Version
 	ja3.Ciphers = info.CipherSuites
-	ja3.Extensions = getExtensions(info)
+	ja3.Extensions = info.Extensions //getExtensions(info)
 	ja3.setCurves(info)
 	ja3.setPoints(info)
 	return ja3, nil
