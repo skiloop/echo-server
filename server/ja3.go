@@ -3,7 +3,6 @@ package server
 import (
 	"crypto/tls"
 	"fmt"
-	"github.com/skiloop/echo-server/server/ctls"
 	"github.com/skiloop/echo-server/utils"
 	"strings"
 )
