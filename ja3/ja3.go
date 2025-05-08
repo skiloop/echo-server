@@ -1,4 +1,4 @@
-package server
+package ja3
 
 import (
 	"crypto/tls"
@@ -41,14 +41,22 @@ func GenJA3(info tls.ClientHelloInfo) (string, error) {
 
 func GenJA3Raw(info tls.ClientHelloInfo) (Ja3, error) {
 	var ja3 Ja3
-	ja3.Version = info.Version
+	ja3.setVersion(info)
 	ja3.Ciphers = info.CipherSuites
-	ja3.Extensions = info.Extensions //getExtensions(info)
+	ja3.Extensions = getExtensions(info)
 	ja3.setCurves(info)
 	ja3.setPoints(info)
 	return ja3, nil
 }
 
+func (j *Ja3) setVersion(info tls.ClientHelloInfo) {
+
+	for _, version := range info.SupportedVersions {
+		if (version > j.Version) && (version != 0xFFFF) {
+			j.Version = version
+		}
+	}
+}
 func (j *Ja3) setCurves(info tls.ClientHelloInfo) {
 	for _, curve := range info.SupportedCurves {
 		j.Curves = append(j.Curves, uint16(curve))

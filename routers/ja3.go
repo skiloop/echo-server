@@ -2,8 +2,7 @@ package routers
 
 import (
 	"fmt"
-	"github.com/labstack/echo/v4"
-	"github.com/skiloop/echo-server/server"
+	"github.com/skiloop/echo-server/ja3"
 	"net/http"
 )
 
@@ -12,9 +11,9 @@ func JA3(c echo.Context) error {
 	if j == nil {
 		return c.JSON(http.StatusOK, "{\"code\":100,\"message\":\"no ja3\"}")
 	}
-	ja3 := j.(server.Ja3)
-	c.Logger().Debugf("ja3 %s", ja3.Md5Hash())
-	return c.JSON(http.StatusOK, ja3)
+	j3 := j.(ja3.Ja3)
+	c.Logger().Debugf("ja3 %s", j3.Md5Hash())
+	return c.JSON(http.StatusOK, j3)
 }
 
 func SetJA3Routers(c *echo.Echo, prefix string) {
