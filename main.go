@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
+	"github.com/skiloop/echo-server/ja3"
 	"github.com/skiloop/echo-server/routers"
 	"github.com/skiloop/echo-server/server"
 	"os"
@@ -31,7 +32,7 @@ func main() {
 	// middlewares
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	e.Use(server.JA3())
+	e.Use(ja3.HashMiddleware())
 	e.Logger.SetLevel(log.DEBUG)
 
 	// routers
@@ -74,7 +75,7 @@ func serve(e *echo.Echo, addr, httpsAddr, cert, key string) {
 
 func setUpRouters(e *echo.Echo) {
 	routers.SetEchoRouters(e, "/")
-	routers.SetJA3Routers(e, "/")
+	ja3.SetJA3Routers(e, "/")
 	// ip location routes
 	routers.SetLocationRouters(e, "/")
 	e.GET("/mongo/:id", routers.MongoParseID)
