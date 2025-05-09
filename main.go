@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
 	"github.com/skiloop/echo-server/ja3"
+	esmw "github.com/skiloop/echo-server/middleware"
 	"github.com/skiloop/echo-server/routers"
 	"github.com/skiloop/echo-server/server"
 	"os"
@@ -28,12 +30,21 @@ func main() {
 	if "" == *certFile {
 		*certFile = os.Getenv("TLS_CERT_FILE")
 	}
+
 	e := server.NewEchoServer(*httpsAddr, *certFile, *keyFile)
-	// middlewares
+	e.Logger.SetLevel(log.DEBUG)
+
+	// middleware
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	e.Use(ja3.HashMiddleware())
-	e.Logger.SetLevel(log.DEBUG)
+
+	// ja3 middleware
+	e.Use(ja3.Middleware())
+
+	// use WafMiddleware
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	e.Use(esmw.WafMiddleware(1800, nil, ctx))
 
 	// routers
 	setUpRouters(e)
