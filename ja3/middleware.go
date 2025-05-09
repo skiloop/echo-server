@@ -7,9 +7,11 @@ import (
 )
 
 const XJa3HeaderName = "X-JA3"
+const XJa3HashKey = "X-JA3-HASH"
+const XJa3Key = "X-JA3"
 
 func JA3(c echo.Context) error {
-	j := c.Get("ja3")
+	j := c.Get(XJa3Key)
 	if j == nil {
 		return c.JSON(http.StatusOK, "{\"code\":100,\"message\":\"no ja3\"}")
 	}
@@ -25,18 +27,21 @@ func SetJA3Routers(c *echo.Echo, prefix string) {
 	c.GET(fmt.Sprintf("%s/ja3", prefix), JA3)
 }
 
-func HashMiddleware() echo.MiddlewareFunc {
+func Middleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(context echo.Context) error {
 			k := context.Request().RemoteAddr
 			//store := context.Get("store").(echo.Map)
 			// TODO: conflicts appear when different client from the same remote address
-			if val, ok := store[k]; ok {
-				delete(store, k)
-				context.Set("ja3", val)
+			if val, ok := store.Get(k); ok {
+				context.Set(XJa3Key, val)
+
 				val := val.(Ja3)
-				context.Echo().Logger.Debugf("get %s ja3 for %s", k, val.Md5Hash())
-				context.Response().Header().Set(XJa3HeaderName, val.Md5Hash())
+				valHash := val.Md5Hash()
+				context.Set(XJa3HashKey, valHash)
+
+				context.Echo().Logger.Debugf("get %s ja3 for %s", k, valHash)
+				context.Response().Header().Set(XJa3HeaderName, valHash)
 			} else {
 				context.Echo().Logger.Warnf("no ja3 for %s", k)
 			}

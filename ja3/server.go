@@ -4,7 +4,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"github.com/labstack/echo/v4"
+	"github.com/skiloop/echo-server/utils"
 	"net"
 	"net/http"
 	"os"
@@ -12,11 +12,11 @@ import (
 
 var (
 	certOrKeyError = errors.New("invalid cert or key error")
-	store          echo.Map
+	store          *utils.KVStore
 )
 
 func init() {
-	store = make(echo.Map)
+	store = utils.NewKVStore(1800)
 }
 
 func filepathOrContent(fileOrContent interface{}) (content []byte, err error) {
@@ -44,19 +44,10 @@ func NewHttpServer(addr, cert, key string) (*http.Server, error) {
 	srv.TLSConfig = new(tls.Config)
 	connState := srv.ConnState
 	if connState == nil {
-		srv.ConnState = func(c net.Conn, cs http.ConnState) {
-			if cs == http.StateClosed {
-				k := c.RemoteAddr().String()
-				delete(store, k)
-			}
-		}
+		srv.ConnState = onStateChange
 	} else {
 		srv.ConnState = func(c net.Conn, cs http.ConnState) {
-			if cs == http.StateClosed {
-				k := c.RemoteAddr().String()
-				fmt.Printf("remove ja3 for %s\n", k)
-				delete(store, k)
-			}
+			onStateChange(c, cs)
 			connState(c, cs)
 		}
 	}
@@ -69,12 +60,20 @@ func NewHttpServer(addr, cert, key string) (*http.Server, error) {
 	return srv, nil
 }
 
+func onStateChange(c net.Conn, cs http.ConnState) {
+	if cs == http.StateClosed {
+		k := c.RemoteAddr().String()
+		fmt.Printf("remove ja3 for %s\n", k)
+		store.Delete(k)
+	}
+}
+
 func getConfigForClient(info *tls.ClientHelloInfo) (*tls.Config, error) {
 	ja3_, err := GenJA3Raw(*info)
 	if err == nil {
 		k := info.Conn.RemoteAddr().String()
 		fmt.Printf("%s ja3 %s\n", k, ja3_.Md5Hash())
-		store[k] = ja3_
+		store.Set(k, ja3_)
 	} else {
 		fmt.Printf("get ja3 error %s\n", err)
 	}
