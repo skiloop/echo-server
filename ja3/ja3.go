@@ -3,8 +3,9 @@ package ja3
 import (
 	"crypto/tls"
 	"fmt"
-	"github.com/skiloop/echo-server/utils"
 	"strings"
+
+	"github.com/skiloop/echo-server/utils"
 )
 
 type Ja3 struct {
@@ -45,9 +46,7 @@ func GenJA3Raw(info tls.ClientHelloInfo) (Ja3, error) {
 	var ja3 Ja3
 	ja3.Version = getMaxVersion(info)
 	ja3.Ciphers = info.CipherSuites
-	//ja3.Extensions = getExtensions(info)
-	ja3.Extensions = make([]uint16, len(info.Extensions))
-	copy(ja3.Extensions, info.Extensions)
+	ja3.Extensions = getExtensions(info)
 	ja3.Versions = make([]uint16, len(info.SupportedVersions))
 	copy(ja3.Versions, info.SupportedVersions)
 	ja3.setCurves(info)
