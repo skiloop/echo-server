@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/alecthomas/kong"
@@ -13,15 +14,17 @@ import (
 	esmw "github.com/skiloop/echo-server/middleware"
 	"github.com/skiloop/echo-server/routers"
 	"github.com/skiloop/echo-server/server"
+	"github.com/skiloop/echo-server/version"
 )
 
 // CLI 命令行参数定义
 type CLI struct {
+	Version            bool     `short:"V" help:"Show version" default:"false"`
 	HTTP               string   `short:"b" help:"HTTP bind address" default:"0.0.0.0:9012" env:"HTTP_ADDR"`
 	HTTPS              string   `short:"s" help:"HTTPS bind address" default:"0.0.0.0:9013" env:"HTTPS_ADDR"`
 	Cert               string   `short:"c" help:"TLS certificate file path" env:"TLS_CERT_FILE"`
 	Key                string   `short:"k" help:"TLS key file path" env:"TLS_KEY_FILE"`
-	Debug              bool     `short:"v" help:"Enable debug logging" default:"false"`
+	Debug              bool     `short:"d" help:"Enable debug logging" default:"false"`
 	AuthApiKey         string   `short:"a" help:"API key for HMAC authentication" default:"your-secret-api-key-here" env:"AUTH_API_KEY"`
 	AuthTimestampValid int64    `short:"t" help:"Timestamp valid period for HMAC authentication" default:"300" env:"AUTH_TIMESTAMP_VALID"`
 	AuthPaths          []string `short:"p" help:"Paths requiring HMAC authentication (supports wildcards)" default:"/upload,/upload/*" env:"AUTH_PATHS" sep:","`
@@ -40,6 +43,10 @@ func main() {
 	logLevel := log.INFO
 	if cli.Debug {
 		logLevel = log.DEBUG
+	}
+	if cli.Version {
+		fmt.Println(version.BuildVersion())
+		os.Exit(0)
 	}
 
 	// 创建服务器
@@ -111,6 +118,7 @@ func setUpRouters(e *echo.Echo) {
 	// ip location routes
 	routers.SetLocationRouters(e, "/")
 	e.GET("/mongo/:id", routers.MongoParseID)
+	e.GET("/version", routers.GetVersion)
 
 	// file upload routes (需要HMAC认证)
 	routers.SetUploadRouters(e)
