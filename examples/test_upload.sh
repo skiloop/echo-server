@@ -2,9 +2,9 @@
 
 # 文件上传测试脚本
 
-API_KEY="your-secret-api-key-here"
+API_KEY="${AUTH_API_KEY:-your-secret-api-key-here}"
 SERVER_URL="http://localhost:9012/upload"
-TEST_FILE="test.txt"
+TEST_FILE="${TEST_FILE:-test.txt}"
 
 echo "=== 文件上传测试 ==="
 echo ""
@@ -15,13 +15,17 @@ if [ ! -f "$TEST_FILE" ]; then
     echo "请先创建测试文件"
     exit 1
 fi
+echo "TEST_FILE : $TEST_FILE"
+echo "API_KEY   : $API_KEY"
+echo "SERVER_URL: $SERVER_URL"
+echo ""
 
 # 生成时间戳
 TIMESTAMP=$(date +%s)
 echo "时间戳: $TIMESTAMP"
 
 # 计算签名
-SIGNATURE=$(echo -n "$TIMESTAMP" | openssl dgst -sha256 -hmac "$API_KEY" | awk '{print $2}')
+SIGNATURE=$(printf "%s" "$TIMESTAMP" | openssl dgst -sha256 -hmac "$API_KEY" | awk '{print $2}')
 echo "签名: $SIGNATURE"
 echo ""
 

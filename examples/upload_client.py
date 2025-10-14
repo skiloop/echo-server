@@ -11,13 +11,14 @@ python upload_client_example.py test.txt
 
 import hmac
 import hashlib
+import os
 import time
 import sys
 import requests
 
 # API配置
-API_KEY = "your-secret-api-key-here"  # 需要与服务器端的ApiKey一致
-SERVER_URL = "http://localhost:9012/upload"  # 或 https://localhost:9013/upload
+API_KEY = os.getenv("AUTH_API_KEY", "your-secret-api-key-here")  # 需要与服务器端的ApiKey一致
+SERVER_URL = os.getenv("SERVER_URL", "http://localhost:9012/upload")  # 或 https://localhost:9013/upload
 
 
 def calculate_signature(api_key, timestamp):

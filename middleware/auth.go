@@ -163,7 +163,8 @@ func validateHMACAuth(c echo.Context, apiKey string, timestampValid int64) error
 
 	// 计算期望的签名
 	expectedSignature := calculateHMACSignature(apiKey, timestamp)
-
+	c.Logger().Debugf("expected signature: %s", expectedSignature)
+	c.Logger().Debugf("signature: %s", signature)
 	// 比较签名
 	if !hmac.Equal([]byte(signature), []byte(expectedSignature)) {
 		return fmt.Errorf("invalid signature")

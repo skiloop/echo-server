@@ -2,10 +2,9 @@ package main
 
 import (
 	"context"
-	"flag"
-	"fmt"
 	"os"
 
+	"github.com/alecthomas/kong"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
@@ -16,25 +15,36 @@ import (
 	"github.com/skiloop/echo-server/server"
 )
 
-var httpsAddrDefault = "0.0.0.0:9013"
-var keyFile = flag.String("key", "", "tls key file path, empty then env TLS_KEY_FILE will apply")
-var certFile = flag.String("cert", "", "tls cert file path, empty then TLS_CERT_FILE will apply")
-var httpAddr = flag.String("http", "0.0.0.0:9012", "http bind addr")
-var httpsAddr = flag.String("https", "0.0.0.0:9013", fmt.Sprintf("https bind addr, if not set but cert and key are set, then use %s", httpsAddrDefault))
+// CLI 命令行参数定义
+type CLI struct {
+	HTTP               string   `help:"HTTP bind address" default:"0.0.0.0:9012" env:"HTTP_ADDR"`
+	HTTPS              string   `help:"HTTPS bind address" default:"0.0.0.0:9013" env:"HTTPS_ADDR"`
+	Cert               string   `help:"TLS certificate file path" env:"TLS_CERT_FILE"`
+	Key                string   `help:"TLS key file path" env:"TLS_KEY_FILE"`
+	Debug              bool     `help:"Enable debug logging" default:"true"`
+	AuthApiKey         string   `help:"API key for HMAC authentication" default:"your-secret-api-key-here" env:"AUTH_API_KEY"`
+	AuthTimestampValid int64    `help:"Timestamp valid period for HMAC authentication" default:"300" env:"AUTH_TIMESTAMP_VALID"`
+	AuthPaths          []string `help:"Paths requiring HMAC authentication (supports wildcards)" default:"/upload,/upload/*" env:"AUTH_PATHS" sep:","`
+}
 
 func main() {
-	flag.Parse()
+	// 解析命令行参数
+	cli := CLI{}
+	_ = kong.Parse(&cli,
+		kong.Name("echo-server"),
+		kong.Description("A versatile echo server with JA3 fingerprinting and file upload support"),
+		kong.UsageOnError(),
+	)
 
-	addr := *httpAddr
-	if "" == *keyFile {
-		*keyFile = os.Getenv("TLS_KEY_FILE")
-	}
-	if "" == *certFile {
-		*certFile = os.Getenv("TLS_CERT_FILE")
+	// 配置日志级别
+	logLevel := log.INFO
+	if cli.Debug {
+		logLevel = log.DEBUG
 	}
 
-	e := server.NewEchoServer(*httpsAddr, *certFile, *keyFile)
-	e.Logger.SetLevel(log.DEBUG)
+	// 创建服务器
+	e := server.NewEchoServer(cli.HTTPS, cli.Cert, cli.Key)
+	e.Logger.SetLevel(logLevel)
 
 	// middleware
 	e.Use(middleware.Logger())
@@ -44,18 +54,24 @@ func main() {
 	e.Use(ja3.Middleware())
 
 	// use WafMiddleware
-	ctx, cancel := context.WithCancel(context.Background())
+	wafCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	e.Use(esmw.WafMiddleware(1800, nil, ctx))
+	e.Use(esmw.WafMiddleware(1800, nil, wafCtx))
 
 	// HMAC认证中间件 - 仅对指定路径生效
-	e.Use(esmw.HMACAuthForPaths("/upload", "/upload/*"))
+	if len(cli.AuthPaths) > 0 {
+		e.Logger.Infof("Enabling HMAC auth for paths: %v", cli.AuthPaths)
+		e.Logger.Debugf("HMAC auth key: %s", cli.AuthApiKey)
+		e.Logger.Debugf("HMAC auth timestamp valid: %d", cli.AuthTimestampValid)
+		e.Logger.Debugf("HMAC auth paths: %v", cli.AuthPaths)
+		e.Use(esmw.HMACAuthWithConfig(cli.AuthApiKey, cli.AuthTimestampValid, cli.AuthPaths))
+	}
 
 	// routers
 	setUpRouters(e)
 
 	// start
-	serve(e, addr, *httpsAddr, *certFile, *keyFile)
+	serve(e, cli.HTTP, cli.HTTPS, cli.Cert, cli.Key)
 }
 
 func OK(c echo.Context) error {
@@ -66,7 +82,7 @@ func OK(c echo.Context) error {
 func serve(e *echo.Echo, addr, httpsAddr, cert, key string) {
 	e.Logger.Debugf("cert file: %s, key file: %s", cert, key)
 	tlsAddr := ""
-	if "" != cert && "" != key {
+	if cert != "" && key != "" {
 		tlsAddr = httpsAddr
 		if tlsAddr == "" {
 			tlsAddr = os.Getenv("BIND_ADDR_TLS")

@@ -13,6 +13,7 @@ require (
 )
 
 require (
+	github.com/alecthomas/kong v1.12.1 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

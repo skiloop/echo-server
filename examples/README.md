@@ -136,21 +136,72 @@ Content-Type: text/plain
 
 ## 故障排查
 
-### 认证失败 (401)
+### 🔧 快速修复
 
-- 检查API Key是否一致
-- 检查时间戳是否在有效期内（5分钟）
-- 验证签名计算是否正确
+如果上传失败，请先阅读：
 
-### 文件未找到 (400)
+📖 **[QUICK_FIX.md](QUICK_FIX.md)** - 认证问题快速修复指南
+
+或运行诊断工具：
+
+```bash
+./debug_auth.sh
+```
+
+### 常见问题
+
+#### 认证失败 (401)
+
+**症状**：
+```
+HTTP状态码: 401
+响应内容: {"error":"authentication failed"}
+```
+
+**快速解决**：
+```bash
+# 1. 运行诊断
+./debug_auth.sh
+
+# 2. 确保 API Key 一致
+export AUTH_API_KEY="your-secret-api-key-here"
+
+# 3. 重新测试
+./test_upload.sh
+```
+
+**详细排查**：参见 [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+
+#### Python 成功但 Shell 失败
+
+**原因**：API Key 不一致
+
+**解决**：
+```bash
+# 确保环境变量设置
+export AUTH_API_KEY="your-secret-api-key-here"
+
+# 验证
+echo $AUTH_API_KEY
+
+# 测试
+./test_upload.sh
+```
+
+#### 文件未找到 (400)
 
 - 确保使用正确的表单字段名 "file"
 - 检查文件路径是否正确
 
-### 服务器错误 (500)
+#### 服务器错误 (500)
 
 - 检查上传目录权限
 - 查看服务器日志获取详细错误信息
+
+### 📚 完整文档
+
+- [QUICK_FIX.md](QUICK_FIX.md) - 快速修复指南 ⭐
+- [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - 详细故障排查
 
 ## 扩展开发
 
