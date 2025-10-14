@@ -3,7 +3,7 @@
 # 文件上传测试脚本
 
 API_KEY="${AUTH_API_KEY:-your-secret-api-key-here}"
-SERVER_URL="http://localhost:9012/upload"
+SERVER_URL="${SERVER_URL:-http://localhost:9012/upload}"
 TEST_FILE="${TEST_FILE:-test.txt}"
 
 echo "=== 文件上传测试 ==="

@@ -6,6 +6,9 @@ A versatile echo server with JA3 fingerprinting, file upload support, and HMAC a
 
 - 🔐 **JA3 Fingerprinting** - TLS client fingerprinting
 - 📤 **File Upload** - Secure file upload with HMAC authentication
+  - Path traversal attack prevention
+  - Automatic path sanitization
+  - Directory boundary validation
 - 🛡️ **WAF Middleware** - Web application firewall
 - 🔑 **HMAC Auth** - Flexible authentication middleware
 - 🌐 **WebSocket Support** - Echo WebSocket server
@@ -92,8 +95,9 @@ cd examples
 
 - [File Upload API](docs/UPLOAD_API.md) - Complete upload API documentation
 - [Upload Quick Start](docs/UPLOAD_QUICKSTART.md) - Quick start guide
+- [Upload Security](docs/UPLOAD_SECURITY.md) - Path security and attack prevention ⭐
 - [Auth Middleware](middleware/AUTH_MIDDLEWARE.md) - HMAC authentication middleware
-- [Auth Paths Configuration](docs/AUTH_PATHS_CONFIG.md) - Configure authentication paths ⭐
+- [Auth Paths Configuration](docs/AUTH_PATHS_CONFIG.md) - Configure authentication paths
 - [Kong CLI Refactoring](docs/KONG_CLI_REFACTORING.md) - Command-line parameter documentation
 
 ## Configuration
