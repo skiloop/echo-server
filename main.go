@@ -4,14 +4,16 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"os"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
+
 	"github.com/skiloop/echo-server/ja3"
 	esmw "github.com/skiloop/echo-server/middleware"
 	"github.com/skiloop/echo-server/routers"
 	"github.com/skiloop/echo-server/server"
-	"os"
 )
 
 var httpsAddrDefault = "0.0.0.0:9013"
@@ -45,6 +47,9 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	e.Use(esmw.WafMiddleware(1800, nil, ctx))
+
+	// HMAC认证中间件 - 仅对指定路径生效
+	e.Use(esmw.HMACAuthForPaths("/upload", "/upload/*"))
 
 	// routers
 	setUpRouters(e)
@@ -90,6 +95,9 @@ func setUpRouters(e *echo.Echo) {
 	// ip location routes
 	routers.SetLocationRouters(e, "/")
 	e.GET("/mongo/:id", routers.MongoParseID)
+
+	// file upload routes (需要HMAC认证)
+	routers.SetUploadRouters(e)
 
 	// short but useful
 	e.GET("/ok", OK)

@@ -103,17 +103,17 @@ vi upload.env
 source upload.env
 
 # 或者直接设置
-export UPLOAD_API_KEY="your-secret-api-key-here"
+export AUTH_API_KEY="your-secret-api-key-here"
 export UPLOAD_DIR="./uploads"
 export UPLOAD_MAX_SIZE="10485760"  # 10MB
-export UPLOAD_TIMESTAMP_VALID="300"  # 5分钟
+export ECHO_AUTH_TIMESTAMP_VALID="300"  # 5分钟
 ```
 
 支持的环境变量：
-- `UPLOAD_API_KEY`: API密钥（必须设置）
+- `AUTH_API_KEY`: API密钥（必须设置）
 - `UPLOAD_DIR`: 上传目录（可选，默认 `./uploads`）
 - `UPLOAD_MAX_SIZE`: 最大文件大小，单位字节（可选，默认 10MB）
-- `UPLOAD_TIMESTAMP_VALID`: 时间戳有效期，单位秒（可选，默认 300秒）
+- `ECHO_AUTH_TIMESTAMP_VALID`: 时间戳有效期，单位秒（可选，默认 300秒）
 
 #### 方式2: 修改默认值
 

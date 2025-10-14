@@ -175,10 +175,10 @@ Query参数 > 环境变量 > 默认值
 
 | 变量 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `UPLOAD_API_KEY` | string | `your-secret-api-key-here` | API密钥 |
+| `AUTH_API_KEY` | string | `your-secret-api-key-here` | API密钥 |
 | `UPLOAD_DIR` | string | `./uploads` | 上传目录 |
 | `UPLOAD_MAX_SIZE` | int64 | `10485760` | 最大文件大小（字节） |
-| `UPLOAD_TIMESTAMP_VALID` | int64 | `300` | 时间戳有效期（秒） |
+| `ECHO_AUTH_TIMESTAMP_VALID` | int64 | `300` | 时间戳有效期（秒） |
 
 ### 代码常量
 
@@ -278,7 +278,7 @@ go run main.go -http 0.0.0.0:9012
 ### 生产环境
 ```bash
 # 1. 设置环境变量
-export UPLOAD_API_KEY="$(openssl rand -hex 32)"
+export AUTH_API_KEY="$(openssl rand -hex 32)"
 export UPLOAD_DIR="/var/uploads"
 export UPLOAD_MAX_SIZE="52428800"  # 50MB
 
@@ -297,7 +297,7 @@ WORKDIR /app
 COPY . .
 RUN go build -o echo-server
 
-ENV UPLOAD_API_KEY="your-api-key"
+ENV AUTH_API_KEY="your-api-key"
 ENV UPLOAD_DIR="/uploads"
 
 CMD ["./echo-server", "-http", "0.0.0.0:9012"]

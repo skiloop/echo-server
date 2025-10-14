@@ -7,10 +7,12 @@
 - 自动创建上传目录
 - 文件名清理，防止路径遍历攻击
 
-✅ **API Key认证**  
+✅ **API Key认证（独立中间件）**  
 - 使用HMAC-SHA256增强hash认证
 - 时间戳验证，防重放攻击
 - 支持环境变量配置
+- **可配置哪些路径需要认证**
+- **可复用于其他需要认证的API**
 
 ✅ **安全特性**
 - 文件大小限制（默认10MB）
@@ -20,14 +22,24 @@
 
 ## 🚀 快速开始
 
-### 1. 查看上传路由（已添加）
+### 1. 查看上传路由和认证中间件（已添加）
 
-上传路由已经在 `main.go` 中注册：
+上传路由和HMAC认证中间件已经在 `main.go` 中配置：
 
 ```go
-// main.go 第83行
+// main.go
+
+// HMAC认证中间件 - 仅对指定路径生效
+e.Use(esmw.HMACAuthForPaths("/upload", "/upload/*"))
+
+// file upload routes (需要HMAC认证)
 routers.SetUploadRouters(e)
 ```
+
+**说明：**
+- 认证已抽取为独立中间件 `middleware/auth.go`
+- 可以灵活配置哪些路径需要认证
+- 详见 [认证中间件文档](../middleware/AUTH_MIDDLEWARE.md)
 
 ### 2. 配置API Key
 
@@ -40,7 +52,7 @@ routers.SetUploadRouters(e)
 **生产环境（推荐）：**
 ```bash
 # 设置环境变量
-export UPLOAD_API_KEY="your-strong-random-api-key-32-chars-or-more"
+export AUTH_API_KEY="your-strong-random-api-key-32-chars-or-more"
 export UPLOAD_DIR="./uploads"
 export UPLOAD_MAX_SIZE="10485760"  # 10MB
 ```
@@ -164,15 +176,18 @@ SIGNATURE=$(echo -n "$TIMESTAMP" | openssl dgst -sha256 -hmac "$API_KEY" | awk '
 
 ```
 echo-server/
+├── middleware/
+│   ├── auth.go                # HMAC认证中间件 ⭐ 新增
+│   └── AUTH_MIDDLEWARE.md     # 认证中间件文档 ⭐ 新增
 ├── routers/
-│   └── upload.go              # 上传API实现
+│   └── upload.go              # 上传API实现（已简化）
 ├── examples/
 │   ├── upload_client.go       # Go客户端示例
 │   ├── upload_client.py       # Python客户端示例
 │   ├── test_upload.sh         # Bash测试脚本
 │   ├── test.txt               # 测试文件
 │   └── README.md              # 示例说明
-├── main.go                    # 服务器入口（已添加路由）
+├── main.go                    # 服务器入口（已配置认证中间件）
 ├── upload.env.example         # 环境变量配置示例
 ├── UPLOAD_API.md              # 详细API文档
 └── UPLOAD_QUICKSTART.md       # 本文件
@@ -184,10 +199,10 @@ echo-server/
 
 | 变量名 | 说明 | 默认值 |
 |--------|------|--------|
-| `UPLOAD_API_KEY` | API密钥 | `your-secret-api-key-here` |
+| `AUTH_API_KEY` | API密钥 | `your-secret-api-key-here` |
 | `UPLOAD_DIR` | 上传目录 | `./uploads` |
 | `UPLOAD_MAX_SIZE` | 最大文件大小（字节） | `10485760` (10MB) |
-| `UPLOAD_TIMESTAMP_VALID` | 时间戳有效期（秒） | `300` (5分钟) |
+| `ECHO_AUTH_TIMESTAMP_VALID` | 时间戳有效期（秒） | `300` (5分钟) |
 
 ### 代码常量
 
@@ -203,7 +218,7 @@ echo-server/
 
 1. **更改默认API Key**
    ```bash
-   export UPLOAD_API_KEY="$(openssl rand -hex 32)"
+   export AUTH_API_KEY="$(openssl rand -hex 32)"
    ```
 
 2. **使用HTTPS**
@@ -251,8 +266,28 @@ INFO file uploaded successfully: ./uploads/test.txt, size: 1024
 ## 📚 更多文档
 
 - [UPLOAD_API.md](UPLOAD_API.md) - 完整API文档
+- [middleware/AUTH_MIDDLEWARE.md](middleware/AUTH_MIDDLEWARE.md) - 认证中间件文档 ⭐
 - [examples/README.md](examples/README.md) - 客户端示例说明
 - [upload.env.example](upload.env.example) - 环境变量配置示例
+
+## 🔧 自定义认证路径
+
+如果你想为其他API也添加HMAC认证，可以在 `main.go` 中配置：
+
+```go
+// 为多个路径启用认证
+e.Use(esmw.HMACAuthForPaths("/upload", "/api/private/*", "/admin/*"))
+
+// 或使用更灵活的配置
+e.Use(esmw.HMACAuth(esmw.HMACAuthConfig{
+    ApiKey:         os.Getenv("AUTH_API_KEY"),
+    TimestampValid: 300,
+    Paths:          []string{"/upload", "/api/private/*"},
+    SkipPaths:      []string{"/upload/public"},
+}))
+```
+
+详细用法请参考 [middleware/AUTH_MIDDLEWARE.md](middleware/AUTH_MIDDLEWARE.md)
 
 ## 🎉 完成！
 
