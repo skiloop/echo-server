@@ -111,7 +111,8 @@ func uploadFile(filePath string, uploadDir string) error {
 		fmt.Printf("✅ 上传成功!\n")
 		fmt.Printf("   文件名: %s\n", uploadResp.Filename)
 		fmt.Printf("   大小: %d bytes\n", uploadResp.Size)
-		fmt.Printf("   保存路径: %s\n", uploadResp.Path)
+		fmt.Printf("   相对路径: %s\n", uploadResp.Path)
+		fmt.Printf("   (相对于根上传目录)\n")
 		return nil
 	} else {
 		return fmt.Errorf("上传失败 (状态码: %d): %s", resp.StatusCode, uploadResp.Error)
@@ -137,4 +138,3 @@ func main() {
 		os.Exit(1)
 	}
 }
-

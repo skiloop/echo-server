@@ -60,7 +60,8 @@ def upload_file(file_path, upload_dir=None):
                 print(f"✅ 上传成功!")
                 print(f"   文件名: {result.get('filename')}")
                 print(f"   大小: {result.get('size')} bytes")
-                print(f"   保存路径: {result.get('path')}")
+                print(f"   相对路径: {result.get('path')}")
+                print(f"   (相对于根上传目录)")
             else:
                 print(f"❌ 上传失败!")
                 print(f"   状态码: {response.status_code}")
