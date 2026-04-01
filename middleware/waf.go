@@ -6,6 +6,7 @@ import (
 	"github.com/skiloop/echo-server/ja3"
 	"github.com/skiloop/echo-server/utils"
 	"sync/atomic"
+	"time"
 )
 
 var wafStore *utils.KVStore
@@ -54,7 +55,7 @@ func middleware(next echo.HandlerFunc) echo.HandlerFunc {
 func WafMiddleware(ttl int64, keyFunc func(ctx echo.Context) string, ctx context.Context) echo.MiddlewareFunc {
 	if wafStore == nil {
 		wafStore = utils.NewKVStore(ttl)
-		wafStore.StartCleanupRoutine(ctx, 600)
+		wafStore.StartCleanupRoutine(ctx, 600*time.Second)
 		if keyFunc == nil {
 			wafReqIdKey = ja3.XJa3HashKey
 		} else {
