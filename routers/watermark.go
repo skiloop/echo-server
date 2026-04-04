@@ -40,7 +40,7 @@ type watermarkManager struct {
 
 var wm = &watermarkManager{
 	tasks:    make(map[string]*WatermarkTask),
-	maxTasks: 1000,
+	maxTasks: 100,
 }
 
 func generateTaskID() string {
