@@ -123,6 +123,9 @@ func setUpRouters(e *echo.Echo) {
 	// file upload routes (需要HMAC认证)
 	routers.SetUploadRouters(e)
 
+	// watermark routes
+	routers.SetWatermarkRouters(e)
+
 	// short but useful
 	e.GET("/ok", OK)
 	e.PUT("/ok", OK)
