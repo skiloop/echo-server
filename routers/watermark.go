@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -32,21 +33,51 @@ type WatermarkTask struct {
 }
 
 type watermarkManager struct {
-	mu    sync.RWMutex
-	tasks map[string]*WatermarkTask
+	mu       sync.RWMutex
+	tasks    map[string]*WatermarkTask
+	maxTasks int
 }
 
 var wm = &watermarkManager{
-	tasks: make(map[string]*WatermarkTask),
+	tasks:    make(map[string]*WatermarkTask),
+	maxTasks: 1000,
 }
 
 func generateTaskID() string {
 	return uuid.New().String()[:8]
 }
 
+func cleanOldTasks() {
+	if len(wm.tasks) <= wm.maxTasks {
+		return
+	}
+
+	taskList := make([]*WatermarkTask, 0, len(wm.tasks))
+	for _, task := range wm.tasks {
+		taskList = append(taskList, task)
+	}
+
+	sort.Slice(taskList, func(i, j int) bool {
+		return taskList[i].CreatedAt.Before(taskList[j].CreatedAt)
+	})
+
+	removeCount := len(taskList) / 10
+	for i := 0; i < removeCount; i++ {
+		task := taskList[i]
+		if task.Result != "" {
+			os.Remove(task.Result)
+		}
+		delete(wm.tasks, task.ID)
+	}
+}
+
 func createTask(watermark string) string {
 	taskID := generateTaskID()
 	wm.mu.Lock()
+	defer wm.mu.Unlock()
+
+	cleanOldTasks()
+
 	wm.tasks[taskID] = &WatermarkTask{
 		ID:        taskID,
 		Status:    "pending",
@@ -55,7 +86,6 @@ func createTask(watermark string) string {
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
-	wm.mu.Unlock()
 	return taskID
 }
 
